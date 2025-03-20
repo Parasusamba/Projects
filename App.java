@@ -1,100 +1,118 @@
-import java.util.Scanner;
-public class App {
-    public static void main(String[] args) {
-        char res[][]=new char[3][3];
-       for(int row=0;row<3;row++){
-        for(int col=0;col<3;col++){
-            res[row][col]=' ';
-        }
-       }
-       printBoard(res);
-       Scanner sc=new Scanner(System.in);
-       char player='X';
-       int playerCount=0;
-       while(true){
-            System.out.println("player "+player+" move : ");
-            if(playerCount>2){
-                movePlayer(res,player);
-            }
-            else{
-                int row=sc.nextInt();
-                int col=sc.nextInt();
-                if(res[row][col]==' '){
-                    res[row][col]=player;
-                    printBoard(res);
-                }
-                else{
-                    System.out.println("Invalid move.Try again!");
-                    continue;
-                }
-            }
-            if(gameOver(res,player)){
-                printBoard(res);
-                System.out.println("game Over.Player "+player+" won!");
-                break;
-            }
-            player=(player=='X')?'O':'X';
-            if(player=='X'){
-                playerCount++;
-            }
-        }
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.border.Border;
+
+public class TicTacToe extends JFrame implements ActionListener {
+  private JPanel panel,set;
+  private char currentPlayer = 'X';
+  private JButton[][] button = new JButton[3][3];
+  private JButton reset, exit;
+  private JTextField score;
+  private int Xscore=0, Oscore=0;
+  
+  public TicTacToe() {
+    this.setSize(600,600);
+    this.setResizable(false);
+    this.setTitle("Tic-Tac-Toe");
+    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    this.setLayout(new BorderLayout());
+    panel = new JPanel();
+    panel.setLayout(new GridLayout(3,3,0,0));
+    Border border = BorderFactory.createLineBorder(Color.BLACK,5);
+    for(int row=0;row<3;row++) {
+      for(int col=0;col<3;col++) {
+        button[row][col] = new JButton("");
+        button[row][col].setBackground(new Color(120,200,200));
+        button[row][col].setForeground(Color.BLACK);
+        button[row][col].setCursor(new Cursor(1));
+        button[row][col].setBorder(border);
+        button[row][col].setFont(new Font("Arial", Font.BOLD, 50));
+        button[row][col].setFocusable(false);
+        button[row][col].addActionListener(this);
+        panel.add(button[row][col]);
+      }
     }
-    public static boolean gameOver(char res[][],char player){
-        for(int row=0;row<3;row++){
-            if(res[row][0]==player && res[row][1]==player && res[row][2]==player){
-                return true; 
-            }
-        }
-        for(int col=0;col<3;col++){
-            if(res[0][col]==player && res[1][col]==player && res[2][col]==player){
-                return true;
-            }
-        }
-        if(res[0][2]==player && res[1][1]==player && res[2][0]==player){
-            return true;
-        }
-        if(res[0][0]==player && res[1][1]==player && res[2][2]==player){
-            return true;
-        }
-        return false;
-    }   
-    public static void printBoard(char res[][]){
-        for(int row=0;row<3;row++){
-            for(int col=0;col<3;col++){
-                System.out.print(res[row][col]+" | ");
-            }
-            System.out.println();
-            System.out.println("-------------");
-        }
+    score = new JTextField("\t"+"X-score : "+Xscore+"\t\t"+"O-score : "+Oscore);
+    score.setFont(new Font("Arial",Font.ROMAN_BASELINE,15));
+    score.setEditable(false);
+    score.setFocusable(false);
+   
+    set = new JPanel();
+    set.setBackground(Color.BLACK);
+    set.setLayout(new GridLayout(1,2,3,0));
+    reset = new JButton("Reset");
+    reset.setFont(new Font("Arial",Font.BOLD,15));
+    reset.setFocusable(false);
+    reset.setBackground(new Color(200,200,200));
+    reset.addActionListener(e -> resetBoard());
+    exit = new JButton("Exit");
+    exit.setFont(new Font("Arial",Font.BOLD,15));
+    exit.setFocusable(false);
+    exit.setBackground(new Color(200,200,200));
+    exit.addActionListener(e -> this.dispose());
+    set.add(reset);
+    set.add(exit);
+    this.add(set,BorderLayout.NORTH);
+    this.add(panel,BorderLayout.CENTER);
+    this.add(score,BorderLayout.SOUTH);
+    this.setVisible(true);
+  }
+   
+  public void actionPerformed(ActionEvent e) {
+    JButton b = (JButton)e.getSource();
+    if(!b.getText().equals("")) return;
+    b.setText(String.valueOf(currentPlayer));
+    if(checkWin()) {
+      JOptionPane.showMessageDialog(this,"Player "+currentPlayer+" wins!");
+      if(currentPlayer=='X') Xscore++;
+      if(currentPlayer=='O') Oscore++;
+      score.setText("\t"+"X-score : "+Xscore+"\t\t"+"O-score : "+Oscore);
+      resetBoard();
+      currentPlayer = 'X';
+      return;    
     }
-    public static void movePlayer(char res[][],char player){
-        Scanner sc=new Scanner(System.in);
-        System.out.println(player+" :Which player do you want to move ?");
-        System.out.println("From(enter row & col) : ");
-        int oldrow =sc.nextInt();
-        int oldcol =sc.nextInt();
-        if(res[oldrow][oldcol]!=player){
-            System.out.println("The player "+player+" is not avialable at this location");
-            System.out.println("please enter the new location");
-            movePlayer(res,player);
-        }
-        else{
-            boolean space=true;
-            while(space){
-                System.out.println("To(enter row & col) : ");
-                int newrow =sc.nextInt();
-                int newcol=sc.nextInt();
-                if(res[newrow][newcol]==' '){
-                    res[newrow][newcol] = res[oldrow][oldcol];
-                    res[oldrow][oldcol] = ' ';
-                    printBoard(res);
-                    space=false;
-                }
-                else{
-                    System.out.println("the place is alredy occupied.Enter new location :");
-                    space=true;
-                }
-            }
-        }
+
+    if(checkDraw()) {
+      JOptionPane.showMessageDialog(this,"It's a draw!");
+      resetBoard();
+      currentPlayer = 'X';
+      return;    
     }
-}
+    currentPlayer = (currentPlayer=='X')? 'O' : 'X';
+  }
+
+  private boolean checkWin() {
+    for (int i = 0; i < 3; i++) {
+      if (checkRowCol(button[i][0], button[i][1], button[i][2])) return true;
+      if (checkRowCol(button[0][i], button[1][i], button[2][i])) return true;
+    }
+    return checkRowCol(button[0][0], button[1][1], button[2][2]) ||
+          checkRowCol(button[0][2], button[1][1], button[2][0]);
+  }
+   
+  private boolean checkRowCol(JButton b1, JButton b2, JButton b3) {
+      return !b1.getText().equals("") && b1.getText().equals(b2.getText()) && b2.getText().equals(b3.getText());
+  }
+  public boolean checkDraw() {
+    for(JButton[] row:button) {
+      for(JButton bt:row) {
+        if(bt.getText().equals("")) return false;
+      }
+    }
+    return true;
+  }
+   
+  public void resetBoard() {
+    for(JButton[] row:button) {
+      for(JButton bt:row) {
+        bt.setText("");
+      }
+    }
+  }
+
+     public static void main(String[] args) {
+       //SwingUtilities.invokeLater(testTest::new);
+      new TicTacToe();
+    }
+}   
